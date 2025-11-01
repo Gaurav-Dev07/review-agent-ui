@@ -82,10 +82,18 @@ const Index: React.FC = () => {
   };
 
   const handleGitHubAuth = () => {
-    const GITHUB_CLIENT_ID = "Ov23liBJKrCCKdc3welL"; // TODO: Replace with your actual GitHub OAuth App client_id
-    // TODO: Replace with your actual callback URL
-    const REDIRECT_URI = import.meta.env.VITE_CODE_REVIEW_AUTH_CALLBACK_URL;
-    const SCOPE = "repo,admin:repo_hook,workflow";
+    const GITHUB_CLIENT_ID = import.meta.env.VITE_OAUTH_APP_CLIENT_ID;
+    const REDIRECT_URI =
+      import.meta.env.VITE_OAUTH_APP_REDIRECT_URI ||
+      "http://localhost:8080/auth/callback";
+
+    if (!GITHUB_CLIENT_ID) {
+      showToast("GitHub OAuth client id is missing.", "error");
+      console.error("Missing VITE_OAUTH_APP_CLIENT_ID env variable");
+      return;
+    }
+
+    const SCOPE = "repo,admin:repo_hook,workflow,user:email";
     const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${GITHUB_CLIENT_ID}&scope=${encodeURIComponent(
       SCOPE
     )}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}`;
@@ -100,7 +108,6 @@ const Index: React.FC = () => {
     }
   }, []);
 
-  console.log("User state:", user);
   useEffect(() => {
     if (user) {
       loadRepositories();

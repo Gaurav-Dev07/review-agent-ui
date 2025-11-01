@@ -29,6 +29,28 @@ export class GitHubService {
     this.githubApi = githubApi;
   }
 
+  private async resolveUserEmail(accessToken: string): Promise<string | null> {
+    try {
+      const response = await this.githubApi.get<
+        Array<{ email: string; primary: boolean; verified: boolean }>
+      >("user/emails", {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      const primaryEmail =
+        response.data.find((email) => email.primary && email.verified) ??
+        response.data.find((email) => email.verified) ??
+        response.data[0];
+
+      return primaryEmail?.email ?? null;
+    } catch (error) {
+      console.error("Error fetching GitHub user emails:", error);
+      return null;
+    }
+  }
+
   public getGithubApi(): AxiosInstance {
     return this.githubApi;
   }
@@ -59,13 +81,18 @@ export class GitHubService {
       if (!this.isAuthenticated()) {
         throw new Error("User Not authenticated");
       }
-      const savedUser = this.getUser()
       const response = await this.githubApi.get(Github_API_ROUTES.GET_USER, {
         headers: {
           Authorization: `Bearer ${this.accessToken}`,
         },
       });
-      this.user = response.data;
+      const user = response.data as GitHubUser;
+
+      if (!user.email && this.accessToken) {
+        user.email = await this.resolveUserEmail(this.accessToken);
+      }
+
+      this.user = user;
       return this.user;
     } catch (error) {
       console.error("Error fetching GitHub user:", error);

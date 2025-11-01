@@ -83,7 +83,8 @@ const Index: React.FC = () => {
 
   const handleGitHubAuth = () => {
     const GITHUB_CLIENT_ID = "Ov23liBJKrCCKdc3welL"; // TODO: Replace with your actual GitHub OAuth App client_id
-    const REDIRECT_URI = "http://localhost:8080/auth/callback"; // TODO: Replace with your actual callback URL
+    // TODO: Replace with your actual callback URL
+    const REDIRECT_URI = import.meta.env.VITE_CODE_REVIEW_AUTH_CALLBACK_URL;
     const SCOPE = "repo,admin:repo_hook,workflow";
     const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${GITHUB_CLIENT_ID}&scope=${encodeURIComponent(
       SCOPE
